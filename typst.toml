@@ -1,0 +1,12 @@
+[package]
+name = "tenrose"
+version = "0.1.0"
+entrypoint = "lib.typ"
+authors = ["Auguste Baum <@augustebaum>"]
+license = "MIT"
+repository = "https://github.com/augustebaum/tenrose.git"
+description = "Penrose bindings for Typst"
+compiler = "0.10.0"
+exclude = ["graphviz_interface/*", "examples/*", ".gitignore", "Makefile"]
+keywords = ["penrose", "graph", "diagram"]
+categories = ["components", "visualization", "integration"]
