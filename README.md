@@ -6,6 +6,7 @@ A simple Penrose binding for Typst using the WebAssembly plugin system.
 
 1. Penrose is a JS library.
 You can download it by running `npm install @penrose/core` in a directory containing a `node_modules` directory.
+2. QuickJS is a lightweight JS runtime; rquickjs is a Rust library to call JS from Rust (among other things).
 2. [wasm-minimal-protocol](https://github.com/astrale-sharp/wasm-minimal-protocol) is a Rust library to compile Rust programs to a Typst-compliant WASM binary.
 See this command to build the binary defined in `penrose-wasm`:
 ```sh
@@ -20,6 +21,8 @@ The idea is to run Penrose from Rust, and expose WASM functions from a Rust prog
 - [ ] Make a diagram from the above information.
 
 ## Acknowledgements
+
+- https://github.com/svg/svgo for an example of rquickjs to wrap around a JS library.
 
 Thanks to all creators and maintainers of the above-mentioned libraries and tools.
 
