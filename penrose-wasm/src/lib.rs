@@ -5,10 +5,7 @@ use rquickjs::{
     module::ModuleDef,
     Context, Ctx, Function, Module, Object, Runtime, Value,
 };
-// #[cfg(target_os = "windows")]
-// const EOL: &str = "\r\n";
 
-// #[cfg(not(target_os = "windows"))]
 const EOL: &str = "\n";
 
 pub struct OsModule;
@@ -32,23 +29,23 @@ impl ModuleDef for OsModule {
     }
 }
 
-pub fn osvg(svg: &str, config: Option<&str>) -> Option<String> {
-    let runtime = Runtime::new().ok()?;
-    let context = Context::full(&runtime).ok()?;
+pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
+    let runtime = Runtime::new()?;
+    let context = Context::full(&runtime)?;
     let loader = (ModuleLoader::default().with_module("os", OsModule),);
     let resolver = (BuiltinResolver::default().with_module("os"),);
     runtime.set_loader(resolver, loader);
 
-    let s = context.with(|ctx| {
+    context.with(|ctx| {
         let global = ctx.globals();
         let name = "osvg.js";
         let code = include_str!("../../node_modules/@penrose/core/dist/index.js");
         Module::evaluate(ctx.clone(), name, code)
             .unwrap()
-            .finish::<Value>()
-            .ok()?;
-        let optimize: Function = global.get("optimize").ok()?;
-        let compile: Function = global.get("compile").ok()?;
+            .finish::<Value>()?;
+        let optimize: Function = global.get("optimize")?;
+        let compile: Function = global.get("compile")?;
+        let to_svg: Function = global.get("toSVG")?;
 
         // const trio = {
         //         substance: `
@@ -82,14 +79,20 @@ pub fn osvg(svg: &str, config: Option<&str>) -> Option<String> {
         //         .getElementById("penrose")
         //         .appendChild(await toSVG(optimized.value));
 
-        let config_code = format!("({})", config.unwrap_or("undefined"));
-        let config: Value = ctx.eval(config_code).ok()?;
-        let ret: Object = optimize.call((svg, config)).ok()?;
-        let data: String = ret.get("data").ok()?;
-        Some(data)
-    })?;
+        // let config_code = format!("({})", config.unwrap_or("undefined"));
+        // let config: Value = ctx.eval(config_code).ok()?;
+        let compiled: String = compile.call((trio,))?;
+        // if (compiled.isErr()) console.error(showError(compiled.error));
+        let optimized: String = optimize.call((compiled,))?;
+        // let optimized = optimize(compiled.value);
+        // if (optimized.isErr()) console.error(showError(optimized.error));
+        let svg: String = to_svg.call((optimized,))?;
+        // let ret: Object = optimize.call((svg, config)).ok()?;
+        // let data: String = ret.get("data").ok()?;
+        Ok::<String, rquickjs::Error>(svg)
+    })
 
-    Some(s)
+    // Ok(s.unwrap())
 }
 
 #[wasm_minimal_protocol::wasm_func]
@@ -99,40 +102,7 @@ pub fn run(
     domain: &[u8],
     variation: &[u8],
 ) -> Result<Vec<u8>, String> {
-    Ok(b"Some SVG!".to_vec())
+    trio_to_svg([substance, style, domain, variation].concat())
+        .map_err(|err| err.to_string())
+        .map(|svg| svg.into_bytes().to_vec())
 }
-
-// #[wasm_func]
-// pub fn hello() -> Vec<u8> {
-//     b"Hello from wasm!!!".to_vec()
-// }
-
-// #[wasm_func]
-// pub fn double_it(arg: &[u8]) -> Vec<u8> {
-//     [arg, arg].concat()
-// }
-
-// #[wasm_func]
-// pub fn concatenate(arg1: &[u8], arg2: &[u8]) -> Vec<u8> {
-//     [arg1, b"*", arg2].concat()
-// }
-
-// #[wasm_func]
-// pub fn shuffle(arg1: &[u8], arg2: &[u8], arg3: &[u8]) -> Vec<u8> {
-//     [arg3, b"-", arg1, b"-", arg2].concat()
-// }
-
-// #[wasm_func]
-// pub fn returns_ok() -> Result<Vec<u8>, String> {
-//     Ok(b"This is an `Ok`".to_vec())
-// }
-
-// #[wasm_func]
-// pub fn returns_err() -> Result<Vec<u8>, String> {
-//     Err(String::from("This is an `Err`"))
-// }
-
-// #[wasm_func]
-// pub fn will_panic() -> Vec<u8> {
-//     panic!("unconditional panic")
-// }
