@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@penrose/core": "^3.2.0"
+  }
+}

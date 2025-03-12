@@ -7,5 +7,8 @@ in
       # To compile to WASM
       cargo
       lld
+
+      # To download penrose/core
+      nodejs
     ];
   }
