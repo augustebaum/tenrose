@@ -38,8 +38,8 @@ pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
 
     context.with(|ctx| {
         let global = ctx.globals();
-        let name = "osvg.js";
-        let code = include_str!("../../node_modules/@penrose/core/dist/index.js");
+        let name = "index.js";
+        let code = include_str!("../../penrose-js/node_modules/@penrose/core/dist/bundle/index.js");
         Module::evaluate(ctx.clone(), name, code)
             .unwrap()
             .finish::<Value>()?;

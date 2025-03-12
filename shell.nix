@@ -21,5 +21,6 @@ in
 
       # To download penrose/core
       nodejs
+      bun
     ];
   }
