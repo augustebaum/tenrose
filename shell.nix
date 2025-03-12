@@ -16,6 +16,10 @@ in
       })
       lld
 
+      # To debug the WASM binary
+      wasmtime
+      wabt
+       
       # To run wasi-stub
       gcc
 
