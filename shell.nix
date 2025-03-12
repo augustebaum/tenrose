@@ -6,6 +6,8 @@ let
 in
   pkgs.mkShell {
     packages = with pkgs; [
+      just
+
       # To compile to WASM
       cargo
       (rust-bin.stable.latest.default.override {
