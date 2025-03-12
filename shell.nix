@@ -14,6 +14,9 @@ in
       })
       lld
 
+      # To run wasi-stub
+      gcc
+
       # To download penrose/core
       nodejs
     ];
