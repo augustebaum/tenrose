@@ -26,5 +26,8 @@ in
       # To download penrose/core
       nodejs
       bun
+
+      # To debug the Rust quickJS stuff
+      quickjs
     ];
   }

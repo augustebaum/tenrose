@@ -1,4 +1,4 @@
-wasm_minimal_protocol::initiate_protocol!();
+use std::path::Path;
 
 use rquickjs::{
     loader::{BuiltinResolver, ModuleLoader},
@@ -37,15 +37,24 @@ pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
     runtime.set_loader(resolver, loader);
 
     context.with(|ctx| {
-        let global = ctx.globals();
-        let name = "index.js";
-        let code = include_str!("../../penrose-js/node_modules/@penrose/core/dist/bundle/index.js");
-        Module::evaluate(ctx.clone(), name, code)
-            .unwrap()
-            .finish::<Value>()?;
-        let optimize: Function = global.get("optimize")?;
-        let compile: Function = global.get("compile")?;
-        let to_svg: Function = global.get("toSVG")?;
+        let globals = ctx.globals();
+        // let name = "index.js";
+        let code = include_str!("../../penrose-js/node_modules/@penrose/core/dist/index.js");
+        // Module::evaluate(ctx.clone(), name, code)
+        // .unwrap()
+        // .finish::<Value>()?;
+        // println!("{}",code);
+        let value: Value = ctx
+            .eval::<Value, &str>(code)
+            // .unwrap()
+            // ;
+            .expect("evaluation failed");
+        println!("{:?}", value);
+        println!("{:?}", globals.clone().keys::<String>().collect::<Vec<_>>());
+        println!("he",);
+        let optimize: Function = globals.get("optimize")?;
+        let compile: Function = globals.get("compile")?;
+        let to_svg: Function = globals.get("toSVG")?;
 
         // const trio = {
         //         substance: `
@@ -91,9 +100,26 @@ pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
         // let data: String = ret.get("data").ok()?;
         Ok::<String, rquickjs::Error>(svg)
     })
-
-    // Ok(s.unwrap())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // #[test]
+    // fn it_works() {
+    //     let result = run(b"", b"", b"", b"");
+    //     assert_eq!(result, Ok(vec![]));
+    // }
+
+    #[test]
+    fn it_works_trio_to_svg() {
+        let result = run(b"", b"", b"", b"");
+        assert_eq!(result, Ok(vec![]));
+    }
+}
+
+wasm_minimal_protocol::initiate_protocol!();
 
 #[wasm_minimal_protocol::wasm_func]
 pub fn run(
