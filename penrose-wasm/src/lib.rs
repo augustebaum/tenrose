@@ -1,7 +1,5 @@
-use std::path::Path;
-
 use rquickjs::{
-    loader::{BuiltinResolver, ModuleLoader},
+    loader::{BuiltinLoader, BuiltinResolver, ModuleLoader},
     module::ModuleDef,
     Context, Ctx, Function, Module, Object, Runtime, Value,
 };
@@ -30,31 +28,106 @@ impl ModuleDef for OsModule {
 }
 
 pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
+    // let loader = (ModuleLoader::default().with_module("os", OsModule),);
+    let loader = BuiltinLoader::default().with_module(
+        "CC",
+        r#"
+// print("hello");
+export const s = "abc";
+        "#,
+    );
+    let resolver = (BuiltinResolver::default().with_module("CC"),);
+
     let runtime = Runtime::new()?;
-    let context = Context::full(&runtime)?;
-    let loader = (ModuleLoader::default().with_module("os", OsModule),);
-    let resolver = (BuiltinResolver::default().with_module("os"),);
     runtime.set_loader(resolver, loader);
 
+    let context = Context::full(&runtime)?;
+
     context.with(|ctx| {
-        let globals = ctx.globals();
+        // let globals = ctx.globals();
         // let name = "index.js";
-        let code = include_str!("../../penrose-js/node_modules/@penrose/core/dist/index.js");
-        // Module::evaluate(ctx.clone(), name, code)
+
+        // let code = include_str!("./test.js");
+        // Module::evaluate(ctx.clone(), "A", code)
+        //     .unwrap()
+        //     .finish::<Value>()?;
+
+        // println!("{}", code);
+
+        let unevaluated_module = Module::declare(
+            ctx.clone(),
+            "B",
+            r#"
+                import { s } from "CC";
+
+                export { s as hey };
+            "#,
+        )
+        .unwrap();
+
+        let (module, prom) = unevaluated_module.clone().eval().unwrap();
+        prom.finish::<()>();
+
+        // let Ok((module, prom)) = ({
+        //     unevaluated_module.eval()
+        // }) else {
+        //     println!("{:?}", ctx.catch());
+        //     panic!();
+        // };
+
+        println!(
+            "{:?}",
+            (module
+                .clone()
+                .namespace()
+                .unwrap()
+                .keys::<String>()
+                .collect::<Vec<_>>())
+        );
+
+        println!(
+            "{:?}",
+            (
+                module.clone().get::<&str, Value>("hey").unwrap()
+                // .keys::<String>()
+                // .collect::<Vec<_>>())
+            )
+        );
+
+        // match Module::evaluate(
+        //     ctx.clone(),
+        //     "B",
+        //     r#"
+        //             import { s } from "CC";
+
+        //             print(s);
+        //         "#,
+        // ) {
+        //     Ok(x) => {
+        //         println!("{:?}", x);
+        //         x.finish()?
+        //     }
+        //     Err(_) => {
+        //         println!("{:?}", ctx.catch());
+        //     }
+        // }
+
         // .unwrap()
-        // .finish::<Value>()?;
-        // println!("{}",code);
-        let value: Value = ctx
-            .eval::<Value, &str>(code)
-            // .unwrap()
-            // ;
-            .expect("evaluation failed");
-        println!("{:?}", value);
-        println!("{:?}", globals.clone().keys::<String>().collect::<Vec<_>>());
-        println!("he",);
-        let optimize: Function = globals.get("optimize")?;
-        let compile: Function = globals.get("compile")?;
-        let to_svg: Function = globals.get("toSVG")?;
+        // .finish::<()>()
+        // .unwrap();
+
+        // let value: Value = ctx
+        //     .eval::<Value, &str>(code)
+        //     // .unwrap()
+        //     // ;
+        //     .expect("evaluation failed");
+        // println!("{:?}", value);
+
+        // println!("{:?}", globals.clone().keys::<String>().collect::<Vec<_>>());
+        // println!("he",);
+        // let optimize: Function = globals.get("optimize")?;
+        // let compile: Function = globals.get("compile")?;
+        // let to_svg: Function = globals.get("toSVG")?;
 
         // const trio = {
         //         substance: `
@@ -90,15 +163,15 @@ pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
 
         // let config_code = format!("({})", config.unwrap_or("undefined"));
         // let config: Value = ctx.eval(config_code).ok()?;
-        let compiled: String = compile.call((trio,))?;
+        // let compiled: String = compile.call((trio,))?;
         // if (compiled.isErr()) console.error(showError(compiled.error));
-        let optimized: String = optimize.call((compiled,))?;
+        // let optimized: String = optimize.call((compiled,))?;
         // let optimized = optimize(compiled.value);
         // if (optimized.isErr()) console.error(showError(optimized.error));
-        let svg: String = to_svg.call((optimized,))?;
+        // let svg: String = to_svg.call((optimized,))?;
         // let ret: Object = optimize.call((svg, config)).ok()?;
         // let data: String = ret.get("data").ok()?;
-        Ok::<String, rquickjs::Error>(svg)
+        Ok::<String, rquickjs::Error>("success".to_string())
     })
 }
 
