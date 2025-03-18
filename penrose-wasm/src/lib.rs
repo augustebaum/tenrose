@@ -1,34 +1,9 @@
 use rquickjs::{
-    loader::{BuiltinLoader, BuiltinResolver, ModuleLoader},
-    module::ModuleDef,
-    Context, Ctx, Function, Module, Object, Runtime, Value,
+    loader::{BuiltinLoader, BuiltinResolver},
+    Context, Module, Runtime, Value,
 };
 
-const EOL: &str = "\n";
-
-pub struct OsModule;
-
-impl ModuleDef for OsModule {
-    fn declare(declare: &rquickjs::module::Declarations) -> rquickjs::Result<()> {
-        declare.declare("EOL")?;
-        declare.declare("default")?;
-        rquickjs::Result::Ok(())
-    }
-
-    fn evaluate<'js>(
-        ctx: &Ctx<'js>,
-        exports: &rquickjs::module::Exports<'js>,
-    ) -> rquickjs::Result<()> {
-        let os = Object::new(ctx.clone())?;
-        os.set("EOL", EOL)?;
-        exports.export("EOL", EOL)?;
-        exports.export("default", os)?;
-        rquickjs::Result::Ok(())
-    }
-}
-
 pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
-    // let loader = (ModuleLoader::default().with_module("os", OsModule),);
     let loader = BuiltinLoader::default().with_module(
         "CC",
         r#"
