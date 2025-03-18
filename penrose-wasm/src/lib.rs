@@ -1,5 +1,5 @@
 use rquickjs::{
-    loader::{BuiltinLoader, BuiltinResolver},
+    loader::{BuiltinLoader, BuiltinResolver, FileResolver},
     Context, Module, Runtime, Value,
 };
 
@@ -11,7 +11,9 @@ pub fn trio_to_svg(trio: Vec<u8>) -> Result<String, rquickjs::Error> {
 export const s = "abc";
         "#,
     );
-    let resolver = (BuiltinResolver::default().with_module("CC"),);
+    // let resolver = (BuiltinResolver::default().with_module("CC"),);
+    // FileResolver::with_path(self, path)
+    let resolver = (BuiltinResolver::default().with_module("./penrose-bundle.js"),);
 
     let runtime = Runtime::new()?;
     runtime.set_loader(resolver, loader);
@@ -33,12 +35,13 @@ export const s = "abc";
             ctx.clone(),
             "B",
             r#"
-                import { s } from "CC";
+                import { compile } from "./penrose-bundle.js";
 
-                export { s as hey };
+                export { compile as hey };
             "#,
         )
-        .unwrap();
+        .expect("failed to declare module");
+        println!("{:?}", ctx.catch());
 
         let (module, prom) = unevaluated_module.clone().eval().unwrap();
         prom.finish::<()>();
